@@ -1,0 +1,12 @@
+node_modules
+# Keep environment variables out of version control
+.env
+
+/generated/prisma
+
+#SEO - AEO / DISEÑO
+
+# SEO - AEO: Agente que cree contenido optimizado para SEO Y AEO
+# Traer formato de imagen en json para que la IA tenga contexto de UX-UI ->Claude code - cursor - v0 - lovable - emergent
+# Aplificacion de gamificacion para dejar consumos / ayuno intermitente / ejercicio / buenos habitos
+# Seguimiento de sueño - meditacion - salud mental
