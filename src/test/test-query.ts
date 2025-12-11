@@ -4,11 +4,9 @@ import { Pool } from "pg";
 
 const { PrismaClient } = require("@prisma/client");
 
-// Crear pool y adaptador
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 const adapter = new PrismaPg(pool);
 
-// IMPORTANTE: En Prisma 7 SIEMPRE debes pasar el adaptador
 const prisma = new PrismaClient({
   adapter,
   log: ["query", "info", "warn", "error"],

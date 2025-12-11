@@ -1,4 +1,3 @@
-// src/lib/audit.ts
 import { prisma } from "./prisma";
 
 export type AuditEvent =

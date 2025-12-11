@@ -1,4 +1,3 @@
-// src/lib/emailVerification.ts
 import { prisma } from "./prisma";
 import crypto from "crypto";
 

@@ -11,11 +11,9 @@ async function main() {
     process.exit(1);
   }
 
-  // Crear pool y adaptador
   const pool = new Pool({ connectionString: process.env.DATABASE_URL });
   const adapter = new PrismaPg(pool);
 
-  // Crear cliente con adaptador
   const prisma = new PrismaClient({
     adapter,
     log: ["query", "info", "warn", "error"],

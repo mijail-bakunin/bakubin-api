@@ -1,4 +1,3 @@
-// src/lib/http.ts
 import { Request } from "express";
 
 export function getClientInfo(req: Request) {
