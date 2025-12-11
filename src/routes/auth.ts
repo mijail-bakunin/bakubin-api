@@ -5,14 +5,13 @@ import { getClientInfo } from "../lib/http";
 import { logAudit } from "../lib/audit";
 
 const router = Router();
-console.log("Auth router cargado correctamente");
 
 router.use((req, _res, next) => {
   console.log("Auth router recibió:", req.method, req.url);
   next();
 });
 
-/**
+/** - REGISTER:
  * POST /auth/register
  * Body: { name, email, password, confirmPassword }
  */
@@ -119,7 +118,7 @@ router.post("/register", async (req, res) => {
   }
 });
 
-/**
+/** - LOGIN:
  * POST /auth/login
  * Body: { email, password }
  */
