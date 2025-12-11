@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      # 1. Instalar PNPM primero (clave)
+      - name: Instalar pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      # 2. Recién después configurar Node y cachear PNPM
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "pnpm"
+
+      # 3. Instalar dependencias
+      - name: Instalar dependencias
+        run: pnpm install
+
+      # 4. Lint
+      - name: Ejecutar Lint
+        run: pnpm lint
+
+      # 5. Build
+      - name: Build del proyecto
+        run: pnpm build
