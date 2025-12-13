@@ -3,6 +3,7 @@ import { prisma } from "../lib/prisma";
 import { hashPassword, verifyPassword } from "../lib/password";
 import { getClientInfo } from "../lib/http";
 import { logAudit } from "../lib/audit";
+import { RegisterSchema, LoginSchema } from "../lib/schemas/auth.schema";
 
 const router = Router();
 
@@ -13,49 +14,23 @@ router.use((req, _res, next) => {
 
 /** - REGISTER:
  * POST /auth/register
- * Body: { name, email, password, confirmPassword }
+ * Body: { name, email, password,  role}
  */
+
 router.post("/register", async (req, res) => {
-  const { name, email, password, confirmPassword } = req.body ?? {};
+  const parsed = RegisterSchema.safeParse(req.body);
+
+  if (!parsed.success) {
+    return res.status(400).json({
+      ok: false,
+      errors: parsed.error.flatten(),
+    });
+  }
+
+  const { name, email, password, role } = parsed.data;
   const { ip, userAgent } = getClientInfo(req);
 
   try {
-    if (!name || typeof name !== "string" || !name.trim()) {
-      return res.status(400).json({
-        ok: false,
-        message:
-          "Debes ingresar un nombre o alias para la cuenta.",
-      });
-    }
-
-    if (!email || typeof email !== "string") {
-      return res.status(400).json({
-        ok: false,
-        message: "Debes ingresar un correo electrónico válido.",
-      });
-    }
-
-    if (!password || typeof password !== "string") {
-      return res.status(400).json({
-        ok: false,
-        message: "Debes ingresar una contraseña.",
-      });
-    }
-
-    if (password.length < 8) {
-      return res.status(400).json({
-        ok: false,
-        message: "La contraseña debe tener al menos 8 caracteres.",
-      });
-    }
-
-    if (confirmPassword !== undefined && password !== confirmPassword) {
-      return res.status(400).json({
-        ok: false,
-        message: "Las contraseñas no coinciden.",
-      });
-    }
-
     const normalizedEmail = email.toLowerCase();
 
     const existing = await prisma.user.findUnique({
@@ -66,15 +41,14 @@ router.post("/register", async (req, res) => {
       await logAudit({
         event: "USER_REGISTRATION_FAILED",
         userId: existing.id,
-        details: "Intento de registrarse con email existente",
+        details: "Intento de registro con email existente",
         ip,
         userAgent,
       });
 
       return res.status(409).json({
         ok: false,
-        message:
-          "Ya existe un usuario con ese correo.",
+        message: "Ya existe un usuario con ese correo.",
       });
     }
 
@@ -85,13 +59,14 @@ router.post("/register", async (req, res) => {
         name: name.trim(),
         email: normalizedEmail,
         passwordHash,
+        role
       },
     });
 
     await logAudit({
       event: "USER_REGISTERED",
       userId: user.id,
-      details: "Registro sin verificación de email aún",
+      details: `Registro de usuario con rol ${role}`,
       ip,
       userAgent,
     });
@@ -100,7 +75,6 @@ router.post("/register", async (req, res) => {
 
     return res.status(201).json({
       ok: true,
-      message: "Usuario registrado correctamente.",
       user: safeUser,
     });
   } catch (err: any) {
@@ -118,29 +92,25 @@ router.post("/register", async (req, res) => {
   }
 });
 
+
 /** - LOGIN:
  * POST /auth/login
  * Body: { email, password }
  */
 router.post("/login", async (req, res) => {
-  const { email, password } = req.body ?? {};
+  const parsed = LoginSchema.safeParse(req.body);
+
+  if (!parsed.success) {
+    return res.status(400).json({
+      ok: false,
+      errors: parsed.error.flatten(),
+    });
+  }
+
+  const { email, password } = parsed.data;
   const { ip, userAgent } = getClientInfo(req);
 
   try {
-    if (!email || typeof email !== "string") {
-      return res.status(400).json({
-        ok: false,
-        message: "Debes ingresar un email.",
-      });
-    }
-
-    if (!password || typeof password !== "string") {
-      return res.status(400).json({
-        ok: false,
-        message: "Debes ingresar una contraseña.",
-      });
-    }
-
     const normalizedEmail = email.toLowerCase();
 
     const user = await prisma.user.findUnique({
@@ -181,7 +151,6 @@ router.post("/login", async (req, res) => {
     await logAudit({
       event: "USER_LOGIN_SUCCESS",
       userId: user.id,
-      details: "Login exitoso (sin tokens aún)",
       ip,
       userAgent,
     });
@@ -190,10 +159,9 @@ router.post("/login", async (req, res) => {
 
     return res.status(200).json({
       ok: true,
-      message: "Login correcto.",
       user: safeUser,
     });
-  } catch (err: any) {
+  } catch {
     return res.status(500).json({
       ok: false,
       message: "Error interno en login.",
