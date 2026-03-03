@@ -25,11 +25,16 @@ model User {
   email         String   @unique
   passwordHash  String
   role          UserRole @default(DOCENTE)
+  picture   String?
   emailVerified DateTime?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
   auditLogs     AuditLog[]
+
+  chats     Chat[]
+
+  @@map("users")
 }
 
 model VerificationToken {
@@ -52,4 +57,51 @@ model AuditLog {
   userAgent String?
 
   createdAt DateTime @default(now())
+}
+
+
+model Chat {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  title     String   @default("Nuevo chat")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages  Message[]
+
+  @@index([userId])
+  @@index([updatedAt(sort: Desc)])
+  @@map("chats")
+}
+
+model Message {
+  id        String   @id @default(uuid())
+  chatId    String   @map("chat_id")
+  role      String   // user, assistant, system
+  content   String   @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
+  
+  chat        Chat         @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  attachments Attachment[]
+
+  @@index([chatId])
+  @@index([createdAt])
+  @@map("messages")
+}
+
+model Attachment {
+  id               String   @id @default(uuid())
+  messageId        String   @map("message_id")
+  filename         String
+  originalFilename String   @map("original_filename")
+  mimeType         String?  @map("mime_type")
+  sizeBytes        BigInt?  @map("size_bytes")
+  storagePath      String   @map("storage_path")
+  createdAt        DateTime @default(now()) @map("created_at")
+  
+  message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@index([messageId])
+  @@map("attachments")
 }
