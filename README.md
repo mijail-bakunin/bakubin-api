@@ -10,7 +10,7 @@
 
 ![Prisma](https://img.shields.io/badge/Prisma-ORM-2D3748)
 
-![License](https://img.shields.io/github/license/mijail-bakunin/bakubin-api)
+![License](https://img.shields.io/github/license/mijail-bakunin/bakubin-api?branch=master)
 
 [![codecov](https://codecov.io/gh/mijail-bakunin/bakubin-api/branch/master/graph/badge.svg)](https://codecov.io/gh/mijail-bakunin/bakubin-api)
 
