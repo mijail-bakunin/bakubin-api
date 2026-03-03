@@ -17,8 +17,6 @@ jobs:
       # 1. Instalar PNPM primero (clave)
       - name: Instalar pnpm
         uses: pnpm/action-setup@v4
-        with:
-          version: 10
 
       # 2. Recién después configurar Node y cachear PNPM
       - name: Configurar Node.js
