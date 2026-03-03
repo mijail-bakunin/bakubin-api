@@ -13,6 +13,12 @@ const pool =
     connectionString: process.env.DATABASE_URL,
   });
 
+/* REVISAR ESTO MAS ADELANTE
+pool.on("error", (err) => {
+  console.error("Unexpected PG pool error", err);
+});
+*/
+
 const adapter = new PrismaPg(pool);
 
 export const prisma =

@@ -1,0 +1,121 @@
+import { Router } from "express";
+import { prisma } from "../lib/prisma";
+import { currentUser } from "../middleware/currentUser";
+
+const router = Router();
+
+router.use(currentUser);
+
+
+router.post("/", async (req, res) => {
+  const user = (req as any).user;
+  const { title } = req.body;
+
+  const chat = await prisma.chat.create({
+    data: {
+      userId: user.id,
+      title: typeof title === "string" && title.trim() ? title.trim() : undefined,
+    },
+  });
+
+  return res.status(201).json({
+    ok: true,
+    chat,
+  });
+});
+
+
+router.get("/", async (req, res) => {
+  const user = (req as any).user;
+
+  const chats = await prisma.chat.findMany({
+    where: { userId: user.id },
+    orderBy: { updatedAt: "desc" },
+    select: {
+      id: true,
+      title: true,
+      createdAt: true,
+      updatedAt: true,
+    },
+  });
+
+  return res.json({
+    ok: true,
+    items: chats,
+  });
+});
+
+router.get("/:chatId/messages", async (req, res) => {
+  const user = (req as any).user;
+  const { chatId } = req.params;
+
+  const chat = await prisma.chat.findFirst({
+    where: {
+      id: chatId,
+      userId: user.id,
+    },
+  });
+
+  if (!chat) {
+    return res.status(404).json({
+      ok: false,
+      message: "Chat no encontrado",
+    });
+  }
+
+  const messages = await prisma.message.findMany({
+    where: { chatId },
+    orderBy: { createdAt: "asc" },
+    include: { attachments: true },
+  });
+
+  return res.json({
+    ok: true,
+    items: messages,
+  });
+});
+
+router.post("/:chatId/messages", async (req, res) => {
+  const user = (req as any).user;
+  const { chatId } = req.params;
+  const { content } = req.body;
+
+  if (!content || typeof content !== "string") {
+    return res.status(400).json({
+      ok: false,
+      message: "Contenido inválido",
+    });
+  }
+
+  const chat = await prisma.chat.findFirst({
+    where: { id: chatId, userId: user.id },
+  });
+
+  if (!chat) {
+    return res.status(404).json({
+      ok: false,
+      message: "Chat no encontrado",
+    });
+  }
+
+  const message = await prisma.message.create({
+    data: {
+      chatId,
+      role: "user",
+      content,
+    },
+  });
+
+  // ⚠️ opcional pero recomendado
+  await prisma.chat.update({
+    where: { id: chatId },
+    data: { updatedAt: new Date() },
+  });
+
+  return res.status(201).json({
+    ok: true,
+    messages: [message], // lista para LLM
+  });
+});
+
+export default router;

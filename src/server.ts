@@ -2,6 +2,7 @@ import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import authRouter from "./routes/auth";
+import chatRouter from "./routes/chats";
 
 const app = express();
 
@@ -13,6 +14,7 @@ app.get("/health", (_req, res) => {
 });
 
 app.use("/auth", authRouter);
+app.use("/chats", chatRouter);
 
 app.use((_req, res) => {
   res.status(404).json({
