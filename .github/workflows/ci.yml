@@ -29,10 +29,14 @@ jobs:
       - name: Instalar dependencias
         run: pnpm install
 
-      # 4. Lint
+      # 4. Generar Prisma Client (necesario antes del build)
+      - name: Generar Prisma Client
+        run: pnpm prisma:generate
+
+      # 5. Lint
       - name: Ejecutar Lint
         run: pnpm lint
 
-      # 5. Build
+      # 6. Build
       - name: Build del proyecto
         run: pnpm build
